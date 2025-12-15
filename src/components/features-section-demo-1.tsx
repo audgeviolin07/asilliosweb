@@ -3,40 +3,39 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import createGlobe from "cobe";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { IconBrandYoutubeFilled } from "@tabler/icons-react";
-import Image from "next/image";
+import { Highlight, themes } from "prism-react-renderer";
 
 export function FeaturesSectionDemo() {
   const features = [
     {
-      title: "Rate Limiting",
+      title: "Simple Integration",
       description:
-        "Set precise limits on API calls per user, per model, or per time window. Prevent runaway costs before they happen.",
+        "Wrap your LLM calls with a few lines of code. Auto-detects OpenAI and Anthropic response formats.",
       skeleton: <SkeletonOne />,
       className:
         "col-span-1 lg:col-span-4 border-b lg:border-r dark:border-neutral-800",
     },
     {
-      title: "Usage Monitoring",
+      title: "Per-User Tracking",
       description:
-        "Real-time dashboards and alerts for token consumption, request counts, and cost tracking across all your LLM providers.",
+        "Track token consumption per user. Set limits, get alerts when users approach quotas, identify power users.",
       skeleton: <SkeletonTwo />,
       className: "border-b col-span-1 lg:col-span-2 dark:border-neutral-800",
     },
     {
-      title: "Multi-Provider Support",
+      title: "Threshold Alerts",
       description:
-        "Works seamlessly with OpenAI, Anthropic, Cohere, and other major LLM providers through a unified interface.",
+        "Get notified at 80%, 90%, 100% usage. Custom callbacks for billing integration or user notifications.",
       skeleton: <SkeletonThree />,
       className:
         "col-span-1 lg:col-span-3 lg:border-r dark:border-neutral-800",
     },
     {
-      title: "Deploy in seconds",
+      title: "Production Ready",
       description:
-        "Simple npm install and you're ready to go. No complex configuration or infrastructure setup required.",
+        "In-memory storage by default. Plug in Redis or any database with the StorageAdapter interface.",
       skeleton: <SkeletonFour />,
       className: "col-span-1 lg:col-span-3 border-b lg:border-none",
     },
@@ -50,14 +49,18 @@ export function FeaturesSectionDemo() {
   };
 
   return (
-    <div className="relative z-20 py-20 lg:py-40 max-w-7xl mx-auto">
+    <div className="relative z-20 py-20 lg:py-32 max-w-7xl mx-auto">
       <div className="px-8">
-        <h1 className="text-5xl md:text-7xl lg:text-8xl max-w-5xl mx-auto text-center tracking-tight font-bold text-white mb-6">
-          Asillios
+        <h1 className="text-5xl md:text-7xl lg:text-8xl max-w-5xl mx-auto text-center tracking-tight font-medium text-white mb-6">
+        Asillios 
         </h1>
 
-        <p className="text-lg md:text-xl lg:text-2xl max-w-3xl my-6 mx-auto text-neutral-300 text-center font-normal leading-relaxed">
-          An open source TypeScript library for controlling and monitoring API usage in apps that use large language models.
+        <p className="text-lg md:text-xl lg:text-2xl max-w-3xl my-6 mx-auto text-neutral-300 text-center font-normal leading-snug">
+          Rate limiting and usage tracking for LLM-powered apps. Works with OpenAI and Anthropic out of the box.
+        </p>
+
+        <p className="text-sm md:text-base max-w-2xl mx-auto text-neutral-400 text-center font-normal leading-relaxed">
+          Give users free tiers without getting surprised by a massive API bill. Drop in a few lines of code for per-user rate limiting, usage stats, and threshold alerts.
         </p>
 
         <div className="flex justify-center my-8">
@@ -88,10 +91,6 @@ export function FeaturesSectionDemo() {
             </svg>
           </div>
         </div>
-
-        <p className="text-sm md:text-base max-w-2xl mx-auto text-neutral-500 text-center font-normal leading-relaxed mt-8">
-          The name comes from the Greek <em>ásylon</em>, a sacred refuge where nothing could be seized. Asillios (a- without + sill- seizure + -ios one who is) is your software&apos;s sanctuary from unexpected costs.
-        </p>
       </div>
 
       <div className="relative">
@@ -105,9 +104,159 @@ export function FeaturesSectionDemo() {
           ))}
         </div>
       </div>
+
+      {/* Code Examples Section */}
+      <div className="mt-20 px-4 md:px-8 space-y-8">
+        <h2 className="text-2xl md:text-3xl font-medium text-white text-center mb-12">Quick Start</h2>
+
+        <CodeBlock
+          title="Basic Setup"
+          code={`import { createLimiter } from "asillios-limiter";
+
+const limiter = createLimiter({
+  limit: 100000, // 100k tokens per window
+  window: 60 * 60 * 1000, // 1 hour
+  thresholds: [80, 90, 100],
+  onThreshold: (userId, percent) => {
+    console.log(\`user \${userId} hit \${percent}% of their limit\`);
+  },
+});`}
+        />
+
+        <CodeBlock
+          title="Wrap your LLM calls"
+          code={`// Works with OpenAI
+const response = await limiter.wrap("user-123", async () => {
+  return openai.chat.completions.create({
+    model: "gpt-4",
+    messages: [{ role: "user", content: "hello" }],
+  });
+});
+
+// Works with Anthropic too
+const response = await limiter.wrap("user-123", async () => {
+  return anthropic.messages.create({
+    model: "claude-3-sonnet-20240229",
+    max_tokens: 1024,
+    messages: [{ role: "user", content: "hello" }],
+  });
+});`}
+        />
+
+        <CodeBlock
+          title="Check usage and stats"
+          code={`// Check if user can make more requests
+const canProceed = await limiter.check("user-123");
+
+// Get detailed stats
+const stats = await limiter.stats("user-123");
+console.log(stats);
+// { tokensUsed: 150, remaining: 99850, resetAt: Date, percentUsed: 0.15 }
+
+// Manually add tokens (useful for streaming)
+await limiter.addTokens("user-123", 500);
+
+// Reset a user's usage
+await limiter.reset("user-123");`}
+        />
+
+        <CodeBlock
+          title="Custom Storage (Redis example)"
+          code={`import { createLimiter, StorageAdapter, UserData } from "asillios-limiter";
+
+class RedisStorage implements StorageAdapter {
+  async get(userId: string): Promise<UserData | null> {
+    const data = await redis.get(\`limiter:\${userId}\`);
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    return {
+      ...parsed,
+      resetAt: new Date(parsed.resetAt),
+      thresholdsTriggered: new Set(parsed.thresholdsTriggered),
+    };
+  }
+
+  async set(userId: string, data: UserData): Promise<void> {
+    await redis.set(\`limiter:\${userId}\`, JSON.stringify({
+      ...data,
+      thresholdsTriggered: [...data.thresholdsTriggered],
+    }));
+  }
+
+  async delete(userId: string): Promise<void> {
+    await redis.del(\`limiter:\${userId}\`);
+  }
+}
+
+const limiter = createLimiter({
+  limit: 100000,
+  window: 60 * 60 * 1000,
+  storage: new RedisStorage(),
+});`}
+        />
+      </div>
+
+      <div className="mt-20 px-8">
+        <p className="text-xs md:text-sm max-w-2xl mx-auto text-neutral-600 text-center font-normal leading-relaxed">
+          The name comes from the Greek <em>ásylon</em>, a sacred refuge where nothing could be seized. Asillios (a- without + sill- seizure + -ios one who is) is your software&apos;s sanctuary from unexpected costs.
+        </p>
+      </div>
     </div>
   );
 }
+
+const CodeBlock = ({ title, code }: { title: string; code: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="rounded-lg overflow-hidden border border-neutral-800 bg-[#0d1117]">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-neutral-800">
+        <span className="text-sm text-neutral-400">{title}</span>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+        >
+          {copied ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              Copied!
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <Highlight theme={themes.nightOwl} code={code} language="typescript">
+        {({ style, tokens, getLineProps, getTokenProps }) => (
+          <pre className="p-4 overflow-x-auto text-sm" style={{ ...style, background: 'transparent' }}>
+            {tokens.map((line, i) => (
+              <div key={i} {...getLineProps({ line })}>
+                <span className="inline-block w-8 text-neutral-600 select-none text-right mr-4">{i + 1}</span>
+                {line.map((token, key) => (
+                  <span key={key} {...getTokenProps({ token })} />
+                ))}
+              </div>
+            ))}
+          </pre>
+        )}
+      </Highlight>
+    </div>
+  );
+};
 
 const FeatureCard = ({
   children,
@@ -155,141 +304,91 @@ export const SkeletonOne = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const current = Math.floor((progress / 100) * 1000);
-  const remaining = 1000 - current;
-  const barLength = 15;
+  const barLength = 20;
   const filledLength = Math.floor((progress / 100) * barLength);
   const progressBar = '█'.repeat(filledLength) + '░'.repeat(barLength - filledLength);
 
-  const asciiComputer = `
-    ╔══════════════════════════════════╗
-    ║  ┌────────────────────────────┐  ║
-    ║  │  $ api-limiter status      │  ║
-    ║  │                            │  ║
-    ║  │  ✓ Rate limit: 1000/min    │  ║
-    ║  │  ✓ Current:    ${String(current).padStart(4, ' ')}/min     │  ║
-    ║  │  ✓ Remaining:  ${String(remaining).padStart(4, ' ')}         │  ║
-    ║  │                            │  ║
-    ║  │  [${progressBar}] ${String(progress).padStart(3, ' ')}%   │  ║
-    ║  │                            │  ║
-    ║  └────────────────────────────┘  ║
-    ╚══════════════════════════════════╝
-           ╔════════════════╗
-           ╚════════════════╝
-      ┌─────────────────────────────┐
-      └─────────────────────────────┘
-  `;
+  return (
+    <div className="relative flex py-8 h-full items-center justify-center">
+      <div className="text-center">
+        <div className="text-4xl md:text-6xl font-mono text-white mb-2">{progress}%</div>
+        <div className="text-neutral-500 font-mono text-xs md:text-sm">[{progressBar}]</div>
+        <div className="text-neutral-600 text-xs mt-2">tokens used this window</div>
+      </div>
+      <div className="absolute bottom-0 z-40 inset-x-0 h-20 bg-gradient-to-t from-black to-transparent w-full pointer-events-none" />
+    </div>
+  );
+};
+
+export const SkeletonTwo = () => {
+  const users = [
+    { id: 'user-a', usage: 85, shade: 'bg-neutral-200' },
+    { id: 'user-b', usage: 42, shade: 'bg-neutral-400' },
+    { id: 'user-c', usage: 91, shade: 'bg-neutral-300' },
+    { id: 'user-d', usage: 23, shade: 'bg-neutral-500' },
+  ];
 
   return (
-    <div className="relative flex py-8 px-2 gap-10 h-full">
-      <div className="w-full p-5 mx-auto h-full flex items-center justify-center">
-        <pre className="text-white text-xs md:text-sm font-mono leading-tight">
-          {asciiComputer}
-        </pre>
+    <div className="relative flex flex-col p-4 h-full overflow-hidden">
+      <div className="space-y-3">
+        {users.map((user) => (
+          <div key={user.id} className="flex items-center gap-3">
+            <span className="text-neutral-500 text-xs font-mono w-16">{user.id}</span>
+            <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+              <motion.div
+                className={cn("h-full rounded-full", user.shade)}
+                initial={{ width: 0 }}
+                animate={{ width: `${user.usage}%` }}
+                transition={{ duration: 1, delay: 0.2 }}
+              />
+            </div>
+            <span className="text-neutral-400 text-xs font-mono w-8">{user.usage}%</span>
+          </div>
+        ))}
       </div>
-
-      <div className="absolute bottom-0 z-40 inset-x-0 h-60 bg-gradient-to-t from-white dark:from-black via-white dark:via-black to-transparent w-full pointer-events-none" />
-      <div className="absolute top-0 z-40 inset-x-0 h-60 bg-gradient-to-b from-white dark:from-black via-transparent to-transparent w-full pointer-events-none" />
+      <div className="absolute bottom-0 z-40 inset-x-0 h-10 bg-gradient-to-t from-black to-transparent w-full pointer-events-none" />
     </div>
   );
 };
 
 export const SkeletonThree = () => {
+  const [alerts, setAlerts] = React.useState<{pct: string, shade: string}[]>([]);
+
+  useEffect(() => {
+    const thresholds = [
+      { pct: '80%', shade: 'bg-neutral-700 border-neutral-600 text-neutral-300' },
+      { pct: '90%', shade: 'bg-neutral-600 border-neutral-500 text-neutral-200' },
+      { pct: '100%', shade: 'bg-neutral-500 border-neutral-400 text-neutral-100' },
+    ];
+    let index = 0;
+    const interval = setInterval(() => {
+      setAlerts(prev => {
+        if (prev.length >= 3) return [];
+        return [...prev, thresholds[index]];
+      });
+      index = (index + 1) % 3;
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <a
-      href="https://www.youtube.com/watch?v=RPa3_AD1_Vs"
-      target="__blank"
-      className="relative flex gap-10 h-full group/image"
-    >
-      <div className="w-full mx-auto bg-transparent dark:bg-transparent group h-full">
-        <div className="flex flex-1 w-full h-full flex-col space-y-2 relative">
-          <IconBrandYoutubeFilled className="h-20 w-20 absolute z-10 inset-0 text-red-500 m-auto" />
-          <Image
-            src="https://assets.aceternity.com/fireship.jpg"
-            alt="header"
-            width={800}
-            height={800}
-            className="h-full w-full aspect-square object-cover object-center rounded-sm blur-none group-hover/image:blur-md transition-all duration-200"
-          />
-        </div>
-      </div>
-    </a>
-  );
-};
-
-export const SkeletonTwo = () => {
-  const images = [
-    "https://images.unsplash.com/photo-1517322048670-4fba75cbbb62?q=80&w=3000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1573790387438-4da905039392?q=80&w=3425&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1555400038-63f5ba517a47?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1554931670-4ebfabf6e7a9?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "https://images.unsplash.com/photo-1546484475-7f7bd55792da?q=80&w=2581&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  ];
-
-  const rotationsFirstRow = [-5, 3, -7, 6, -2];
-  const rotationsSecondRow = [4, -6, 2, -4, 7];
-
-  const imageVariants = {
-    whileHover: {
-      scale: 1.1,
-      rotate: 0,
-      zIndex: 100,
-    },
-    whileTap: {
-      scale: 1.1,
-      rotate: 0,
-      zIndex: 100,
-    },
-  };
-  return (
-    <div className="relative flex flex-col items-start p-8 gap-10 h-full overflow-hidden">
-      <div className="flex flex-row -ml-20">
-        {images.map((image, idx) => (
+    <div className="relative flex flex-col items-start p-4 h-full overflow-hidden">
+      <div className="space-y-2 w-full">
+        {alerts.map((alert, i) => (
           <motion.div
-            variants={imageVariants}
-            key={"images-first" + idx}
-            style={{
-              rotate: rotationsFirstRow[idx],
-            }}
-            whileHover="whileHover"
-            whileTap="whileTap"
-            className="rounded-xl -mr-4 mt-4 p-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 border border-neutral-100 shrink-0 overflow-hidden"
+            key={i}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn("text-xs font-mono px-3 py-2 rounded border", alert.shade)}
           >
-            <Image
-              src={image}
-              alt="bali images"
-              width={500}
-              height={500}
-              className="rounded-lg h-20 w-20 md:h-40 md:w-40 object-cover shrink-0"
-            />
+            → user-123 reached {alert.pct} of limit
           </motion.div>
         ))}
+        {alerts.length === 0 && (
+          <div className="text-neutral-600 text-xs">Waiting for threshold events...</div>
+        )}
       </div>
-      <div className="flex flex-row">
-        {images.map((image, idx) => (
-          <motion.div
-            key={"images-second" + idx}
-            style={{
-              rotate: rotationsSecondRow[idx],
-            }}
-            variants={imageVariants}
-            whileHover="whileHover"
-            whileTap="whileTap"
-            className="rounded-xl -mr-4 mt-4 p-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 border border-neutral-100 shrink-0 overflow-hidden"
-          >
-            <Image
-              src={image}
-              alt="bali images"
-              width={500}
-              height={500}
-              className="rounded-lg h-20 w-20 md:h-40 md:w-40 object-cover shrink-0"
-            />
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="absolute left-0 z-[100] inset-y-0 w-20 bg-gradient-to-r from-white dark:from-black to-transparent h-full pointer-events-none" />
-      <div className="absolute right-0 z-[100] inset-y-0 w-20 bg-gradient-to-l from-white dark:from-black to-transparent h-full pointer-events-none" />
+      <div className="absolute bottom-0 z-40 inset-x-0 h-10 bg-gradient-to-t from-black to-transparent w-full pointer-events-none" />
     </div>
   );
 };
