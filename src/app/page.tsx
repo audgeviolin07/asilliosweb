@@ -10,8 +10,8 @@ export default function Home() {
         timeScale={1}
         pause={false}
         scanlineIntensity={1}
-        glitchAmount={1}
-        flickerAmount={1}
+        glitchAmount={0}
+        flickerAmount={0}
         noiseAmp={1}
         chromaticAberration={0}
         dither={0}
