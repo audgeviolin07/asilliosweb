@@ -66,7 +66,7 @@ export function FeaturesSectionDemo() {
         </HoverBorderGradient>
       </div>
 
-      <div className="py-12 lg:py-20 px-8">
+      <div className="pt-20 pb-12 lg:pt-32 lg:pb-16 px-8">
         <h1 className="text-5xl md:text-7xl lg:text-8xl max-w-5xl mx-auto text-center tracking-tight font-medium text-white mb-6">
         Asillios 
         </h1>
@@ -121,7 +121,7 @@ export function FeaturesSectionDemo() {
       </div>
 
       <div id="features" className="relative scroll-mt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-6 mt-12 xl:border rounded-md dark:border-neutral-800">
+        <div className="grid grid-cols-1 lg:grid-cols-6 mt-6 xl:border rounded-md dark:border-neutral-800">
           {features.map((feature) => (
             <FeatureCard key={feature.title} className={feature.className}>
               <FeatureTitle>{feature.title}</FeatureTitle>
