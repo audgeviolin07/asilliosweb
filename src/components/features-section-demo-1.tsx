@@ -41,19 +41,56 @@ export function FeaturesSectionDemo() {
       className: "col-span-1 lg:col-span-3 border-b lg:border-none",
     },
   ];
-  return (
-    <div className="relative z-20 py-10 lg:py-40 max-w-7xl mx-auto">
-      <div className="px-8">
-        <h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-black dark:text-white">
-          Asillios
-        </h4>
+  const [copied, setCopied] = React.useState(false);
 
-        <p className="text-sm lg:text-base max-w-2xl my-4 mx-auto text-neutral-500 text-center font-normal dark:text-neutral-300">
+  const handleCopy = () => {
+    navigator.clipboard.writeText('npm install asillios-limiter');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative z-20 py-20 lg:py-40 max-w-7xl mx-auto">
+      <div className="px-8">
+        <h1 className="text-5xl md:text-7xl lg:text-8xl max-w-5xl mx-auto text-center tracking-tight font-bold text-white mb-6">
+          Asillios
+        </h1>
+
+        <p className="text-lg md:text-xl lg:text-2xl max-w-3xl my-6 mx-auto text-neutral-300 text-center font-normal leading-relaxed">
           An open source TypeScript library for controlling and monitoring API usage in apps that use large language models.
         </p>
 
-        <p className="text-xs lg:text-sm max-w-2xl mx-auto text-neutral-400 text-center font-normal dark:text-neutral-400 italic">
-          The name comes from the Greek ásylon, a sacred refuge where nothing could be seized. Asillios (a- without + sill- seizure + -ios one who is) is your software&apos;s sanctuary from unexpected costs.
+        <div className="flex justify-center my-8">
+          <div
+            onClick={handleCopy}
+            className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-3 rounded-lg font-mono text-sm md:text-base cursor-pointer transition-all"
+          >
+            <span>npm install asillios-limiter</span>
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="opacity-70"
+            >
+              {copied ? (
+                <path d="M20 6L9 17l-5-5" />
+              ) : (
+                <>
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </>
+              )}
+            </svg>
+          </div>
+        </div>
+
+        <p className="text-sm md:text-base max-w-2xl mx-auto text-neutral-500 text-center font-normal leading-relaxed mt-8">
+          The name comes from the Greek <em>ásylon</em>, a sacred refuge where nothing could be seized. Asillios (a- without + sill- seizure + -ios one who is) is your software&apos;s sanctuary from unexpected costs.
         </p>
       </div>
 
