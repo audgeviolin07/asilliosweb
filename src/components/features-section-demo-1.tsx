@@ -200,6 +200,7 @@ export function FeaturesSectionDemo() {
               width={400}
               height={400}
               priority
+              unoptimized
               sizes="(max-width: 768px) 192px, (max-width: 1024px) 256px, 400px"
               className="opacity-80 w-48 h-48 md:w-64 md:h-64 lg:w-[400px] lg:h-[400px]"
             />
